@@ -10,6 +10,8 @@ import gzip
 import time
 import math
 
+JXAPI_BASE = 'http://localhost:8080/xapi/'
+
 # Parse the diff and write out a simplified version
 class OscHandler():
   def __init__(self):
@@ -84,7 +86,7 @@ def angleBetweenNodes(a, b, c):
   return math.degrees(math.acos(d))
 
 def requestNodes(ndlist):
-  url = "http://jxapi.openstreetmap.org/xapi/api/0.6/node/%s" % (",".join(map(str, ndlist)))
+  url = JXAPI_BASE + "api/0.6/node/%s" % (",".join(map(str, ndlist)))
   content = urllib2.urlopen(url)
   return content
 
