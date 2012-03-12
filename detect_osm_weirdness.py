@@ -12,6 +12,8 @@ import math
 
 JXAPI_BASE = 'http://localhost:8080/xapi/'
 
+VERBOSE = False
+
 # Parse the diff and write out a simplified version
 class OscHandler():
   def __init__(self):
@@ -126,23 +128,27 @@ def minutelyUpdateRun():
     state[k] = v.strip().replace("\\:", ":")
 
   minuteNumber = int(isoToTimestamp(state['timestamp'])) / 60
-  print "Minute Number: %s" % (minuteNumber)
+  if VERBOSE:
+    print "Minute Number: %s" % (minuteNumber)
 
   # Grab the sequence number and build a URL out of it
   sqnStr = state['sequenceNumber'].zfill(9)
   url = "http://planet.openstreetmap.org/minute-replicate/%s/%s/%s.osc.gz" % (sqnStr[0:3], sqnStr[3:6], sqnStr[6:9])
 
-  print "Downloading change file (%s)." % (url)
+  if VERBOSE:
+    print "Downloading change file (%s)." % (url)
   content = urllib2.urlopen(url)
   content = StringIO.StringIO(content.read())
   gzipper = gzip.GzipFile(fileobj=content)
 
-  print "Parsing change file."
+  if VERBOSE:
+    print "Parsing change file."
   handler = OscHandler()
   parseOsm(gzipper, handler)
 
   # Fetch from jxapi the nodes that weren't in the changeset
-  print "Filling in %d missing nodes." % (len(handler.missingNds))
+  if VERBOSE:
+    print "Filling in %d missing nodes." % (len(handler.missingNds))
   ndchunk = []
   for group in grouper(350, handler.missingNds):
     if group != []:
@@ -150,8 +156,7 @@ def minutelyUpdateRun():
 
   # Now that we have the data in memory, start looking for suspicious-looking changes
   
-  print "%d nodes, %d ways, %d relations." % (len(handler.nodes), len(handler.ways), len(handler.relations))
-  print "Detecting problems."
+  print "%s/%s/%s.osc: %d nodes, %d ways, %d relations." % (sqnStr[0:3], sqnStr[3:6], sqnStr[6:9], len(handler.nodes), len(handler.ways), len(handler.relations))
   ## Ways should not have bends > 95deg in them
   for way in handler.ways.itervalues():
     if way['action'] == 'delete':
