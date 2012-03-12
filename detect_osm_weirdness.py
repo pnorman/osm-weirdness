@@ -226,6 +226,7 @@ def minutelyUpdateRun():
   return True
 
 if __name__ == "__main__":
-  result = minutelyUpdateRun()
-  while result is True:
-    result = minutelyUpdateRun()
+  while True:
+    while minutelyUpdateRun():
+	  pass
+  time.sleep(60)
