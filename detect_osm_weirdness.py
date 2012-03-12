@@ -207,7 +207,7 @@ def minutelyUpdateRun():
       
       averageAngle = totalAngle / (len(nds) - 2)
       #print "Way %d has average angle %f." % (way['id'], averageAngle)
-      if averageAngle < 75.0 or averageAngle > 195.0:
+      if averageAngle < 60.0 or averageAngle > 210.0:
           print "!!! Way %d is abnormally shaped with an average angle of %f." % (way['id'], averageAngle)
 
   #sys.exit(0)
