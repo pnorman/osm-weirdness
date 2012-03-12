@@ -234,4 +234,4 @@ if __name__ == "__main__":
   while True:
     while minutelyUpdateRun():
 	  pass
-  time.sleep(60)
+    time.sleep(60.0)
