@@ -145,7 +145,8 @@ def minutelyUpdateRun():
   print "Filling in %d missing nodes." % (len(handler.missingNds))
   ndchunk = []
   for group in grouper(350, handler.missingNds):
-    parseOsm(requestNodes(group), handler)
+    if group != []:
+      parseOsm(requestNodes(group), handler)
 
   # Now that we have the data in memory, start looking for suspicious-looking changes
   
