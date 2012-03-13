@@ -57,6 +57,17 @@ class Changeset:
   def objects_modified(self):
     return sum(self.modified.itervalues())
   
+  @property
+  def nodes(self):
+    return self.created['node'] + self.deleted['node'] + self.modified['node']
+
+  @property
+  def ways(self):
+    return self.created['way'] + self.deleted['way'] + self.modified['way']
+
+  @property
+  def relations(self):
+    return self.created['relation'] + self.deleted['relation'] + self.modified['relation']
   
 # Parse the diff and write out a simplified version
 class OscHandler():
@@ -161,8 +172,8 @@ def warnset(type, number, cs, message=None):
     warned[type] = []
   if not number in warned[type]:
     if not message:
-      message = '%s (c%s m%s d%s)'
-    print 'CS %s by %s: %s' % (number, cs.user, message)
+      message = type
+    print 'CS %s by %s: %s (c%s m%s d%s)' % (number, cs.user, message, cs.objects_created, cs.objects_modified, cs.objects_deleted)
     warned[type].append(number)
     
 if __name__ == "__main__":
@@ -170,10 +181,25 @@ if __name__ == "__main__":
   while True:
     while minutelyUpdateRun():
       for n, cs in changesets.iteritems():
-        if cs.objects > 500:
-          warnset('500', n, cs)
+        if cs.objects > 300:
           if cs.objects > 5000:
             warnset('5000', n, cs)
-
+          if cs.objects > 10000:
+            warnset('10000', n, cs)
+          if cs.objects > 25000:
+            warnset('25000', n, cs)
+          if cs.objects > 45000:
+            warnset('45000', n, cs)
+           
+          if cs.objects > 1500:
+            if cs.objects == cs.created['node']:
+              warnset('onlynodes', n, cs)
+            if cs.objects == cs.objects_deleted:
+              warnset('onlydelete', n, cs)
+          
+          # shouldn't look at moved nodes, just retagged
+          if cs.created['node'] < 0.05*cs.objects and cs.objects_modified > 0.85*cs.objects:
+            warnset('mechanical1', n, cs, 'Suspicous (Mechanical edit): Mainly modified objects')
+          
           # Wait for a new minutely diff to be generated. Over time the script will slip farther and farther behind until it catches up by processing two diffs at once.
     time.sleep(60.0)
