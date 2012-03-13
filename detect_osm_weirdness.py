@@ -225,9 +225,10 @@ def minutelyUpdateRun():
     statefile = open('state.txt', 'w')
     statefile.write(u.read())
     statefile.close()
-  except Exception, e:
-    print e
-    return False
+  except urllib2.HTTPError, e:
+    if e.code == 404:
+	  return False
+    raise e
   return True
 
 if __name__ == "__main__":
