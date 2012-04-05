@@ -175,9 +175,9 @@ def warnset(type, number, cs, message=None):
       message = type
     print 'CS %s by %s: %s (c%s m%s d%s)' % (number, cs.user, message, cs.objects_created, cs.objects_modified, cs.objects_deleted)
     warned[type].append(number)
+
     
-if __name__ == "__main__":
-  warned = {}
+def detect():
   while True:
     while minutelyUpdateRun():
       for n, cs in changesets.iteritems():
@@ -203,3 +203,6 @@ if __name__ == "__main__":
           
           # Wait for a new minutely diff to be generated. Over time the script will slip farther and farther behind until it catches up by processing two diffs at once.
     time.sleep(60.0)
+if __name__ == "__main__":
+  warned = {}
+  detect()
