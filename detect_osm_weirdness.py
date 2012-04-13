@@ -1,13 +1,9 @@
 #!/usr/bin/env python
 
 import sys
-import urllib2
 import xml.etree.cElementTree as ElementTree
 import simplejson as json
 from datetime import datetime
-import StringIO
-import gzip
-import time
 import math
 
 JXAPI_BASE = 'http://localhost:8080/xapi/'
@@ -16,6 +12,11 @@ VERBOSE = False
 
 # A running list of changesets
 changesets = {}
+
+import osmdifffetcher
+myfetcher = osmdifffetcher.DiffFetcher()
+
+myfetcher.init_latest()
 
 class Changeset:
   def __init__(self, name, attr):
@@ -93,9 +94,7 @@ class OscHandler():
   def endElement(self, name, attributes):
     if name in ('modify', 'delete', 'create'):
       self.action = ''
-def isoToTimestamp(isotime):
-  t = datetime.strptime(isotime, "%Y-%m-%dT%H:%M:%SZ")
-  return time.mktime(t.timetuple())
+
 
 def distanceBetweenNodes(node1, node2):
   dlat = math.fabs(node1['lat'] - node2['lat'])
@@ -121,48 +120,10 @@ def parseOsm(source, handler):
 def minutelyUpdateRun():
 
   # Read the state.txt
-  sf = open('state.txt', 'r')
 
-  state = {}
-  for line in sf:
-    if line[0] == '#':
-      continue
-    (k, v) = line.split('=')
-    state[k] = v.strip().replace("\\:", ":")
-
-  minuteNumber = int(isoToTimestamp(state['timestamp'])) / 60
-  if VERBOSE:
-    print "Minute Number: %s" % (minuteNumber)
-
-  # Grab the sequence number and build a URL out of it
-  sqnStr = state['sequenceNumber'].zfill(9)
-  url = "http://planet.openstreetmap.org/minute-replicate/%s/%s/%s.osc.gz" % (sqnStr[0:3], sqnStr[3:6], sqnStr[6:9])
-
-  if VERBOSE:
-    print "Downloading change file (%s)." % (url)
-  content = urllib2.urlopen(url)
-  content = StringIO.StringIO(content.read())
-  gzipper = gzip.GzipFile(fileobj=content)
-
-  if VERBOSE:
-    print "Parsing change file."
-  
-  parseOsm(gzipper, OscHandler())
-  
-  
-  # Download the next state file
-  nextSqn = int(state['sequenceNumber']) + 1
-  sqnStr = str(nextSqn).zfill(9)
-  url = "http://planet.openstreetmap.org/minute-replicate/%s/%s/%s.state.txt" % (sqnStr[0:3], sqnStr[3:6], sqnStr[6:9])
-  try:
-    u = urllib2.urlopen(url)
-    statefile = open('state.txt', 'w')
-    statefile.write(u.read())
-    statefile.close()
-  except urllib2.HTTPError, e:
-    if e.code == 404:
-      return False
-    raise e
+  diff = myfetcher.next_wait()
+  print diff
+  parseOsm(diff, OscHandler())
   return True
 
 warned = {}
@@ -203,6 +164,9 @@ def detect():
           
           # Wait for a new minutely diff to be generated. Over time the script will slip farther and farther behind until it catches up by processing two diffs at once.
     time.sleep(60.0)
+    
+
 if __name__ == "__main__":
   warned = {}
+  
   detect()
