@@ -4,6 +4,7 @@ import sys
 import xml.etree.cElementTree as ElementTree
 import simplejson as json
 from datetime import datetime
+import time
 import math
 
 JXAPI_BASE = 'http://localhost:8080/xapi/'
@@ -95,7 +96,10 @@ class OscHandler():
     if name in ('modify', 'delete', 'create'):
       self.action = ''
 
-
+def isoToTimestamp(isotime):
+  t = datetime.strptime(isotime, "%Y-%m-%dT%H:%M:%SZ")
+  return time.mktime(t.timetuple())
+  
 def distanceBetweenNodes(node1, node2):
   dlat = math.fabs(node1['lat'] - node2['lat'])
   dlon = math.fabs(node1['lon'] - node2['lon'])
@@ -122,7 +126,6 @@ def minutelyUpdateRun():
   # Read the state.txt
 
   diff = myfetcher.next_wait()
-  print diff
   parseOsm(diff, OscHandler())
   return True
 
