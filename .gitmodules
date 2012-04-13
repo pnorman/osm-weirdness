@@ -1,0 +1,3 @@
+[submodule "osmdifffetcher"]
+	path = osmdifffetcher
+	url = git://github.com/pnorman/osmdifffetcher.git
