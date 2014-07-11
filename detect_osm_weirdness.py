@@ -146,6 +146,8 @@ def detect():
     while minutelyUpdateRun():
       for n, cs in changesets.iteritems():
         if cs.objects > 300:
+          if cs.objects > 2500:
+            warnset('2500', n, cs)
           if cs.objects > 5000:
             warnset('5000', n, cs)
           if cs.objects > 10000:
